@@ -1,11 +1,15 @@
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
-import Button from "@mui/material/Button";
+import Home from "./pages/Home";
+import Chat from "./pages/Chat";
 
 function App() {
   return (
     <div className="App">
-      <h1>Welcome to chat app</h1>
-      <Button variant="outlined">Outlined</Button>
+      <Routes>
+        <Route index element={<Home />} />
+        <Route path="/chat" element={<Chat />} />
+      </Routes>
     </div>
   );
 }
