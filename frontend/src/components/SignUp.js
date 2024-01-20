@@ -2,11 +2,13 @@ import {
   Box,
   FormControl,
   FormLabel,
-  FormErrorMessage,
   Button,
+  useToast,
 } from "@chakra-ui/react";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
 import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,20 +17,92 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordMatches, setPasswordMatches] = useState(true);
+  const [picture, setPicture] = useState();
+  const [isLoading, setIsloading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(name, email, password, confirmPassword, "**");
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  const uploadPicHandler = async (event) => {
+    const pic = event.target.files[0];
+    const cloudName = process.env.CLOUD_NAME;
+    if (pic.type === "image/png" || pic.type === "image/jpeg") {
+      setIsloading(true);
+      const data = new FormData();
+      data.append("file", pic);
+      data.append("upload_preset", "chatApp");
+      data.append("cloud_name", cloudName);
+      try {
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          data
+        );
+        setPicture(response.data?.url);
+        setIsloading(false);
+      } catch (err) {
+        setIsloading(false);
+        toast({
+          title: "Error",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } else {
+      setIsloading(false);
+      toast({
+        title: "Error",
+        description: "Unable to upload your image",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
-  const handleConfirmPasswordChange = (e) => {
-    const { value } = e.target;
-    if (password !== value) {
-      setPasswordMatches(false);
-    } else {
-      setPasswordMatches(true);
-      setConfirmPassword(value);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name || !email || !password || !confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill the mandatory fields",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+    try {
+      setIsloading(true);
+      const response = await axios.post("/api/user/signup", {
+        name,
+        email,
+        password,
+        picture,
+      });
+      setIsloading(false);
+      localStorage.setItem("userInfo", JSON.stringify(response?.data));
+      navigate("/chats");
+    } catch (err) {
+      setIsloading(false);
+      toast({
+        title: "Error",
+        description: err.response.data?.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
@@ -66,6 +140,7 @@ const SignUp = () => {
             paddingRight="4.5rem"
             type={showPassword ? "text" : "password"}
             isRequired
+            min={5}
             onChange={(e) => setPassword(e.target.value)}
           />
           <InputRightElement width="4.5rem" height="2rem">
@@ -79,19 +154,15 @@ const SignUp = () => {
           </InputRightElement>
         </InputGroup>
       </FormControl>
-      <FormControl
-        id="confirm-password"
-        isRequired
-        isInvalid={!passwordMatches}
-      >
+      <FormControl id="confirm-password" isRequired>
         <FormLabel>Confirm Password</FormLabel>
         <InputGroup>
           <Input
             size="sm"
             paddingRight="4.5rem"
             type={showConfirmPassword ? "text" : "password"}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             isRequired
-            onChange={handleConfirmPasswordChange}
           />
           <InputRightElement width="4.5rem" height="2rem">
             <Button
@@ -103,14 +174,24 @@ const SignUp = () => {
             </Button>
           </InputRightElement>
         </InputGroup>
-        <FormErrorMessage>Passwords don't match</FormErrorMessage>
       </FormControl>
       <FormControl>
         <FormLabel>Upload your image</FormLabel>
-        <Input size="md" type="file" accept="image/*" paddingTop={1} />
+        <Input
+          size="md"
+          type="file"
+          accept="image/*"
+          paddingTop={1}
+          onChange={uploadPicHandler}
+        />
       </FormControl>
-      <Button type="submit" colorScheme="blue" variant="solid">
-        Login
+      <Button
+        type="submit"
+        colorScheme="blue"
+        variant="solid"
+        isLoading={isLoading}
+      >
+        SignUp
       </Button>
     </Box>
   );

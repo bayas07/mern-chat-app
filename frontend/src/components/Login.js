@@ -1,15 +1,55 @@
-import { Box, FormControl, FormLabel, Button } from "@chakra-ui/react";
+import {
+  Box,
+  FormControl,
+  FormLabel,
+  Button,
+  useToast,
+} from "@chakra-ui/react";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
 import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [name, setName] = useState("");
+  const [isLoading, setIsloading] = useState(false);
+  const [email, setName] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(name, password, "**");
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill the mandatory fields",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+    try {
+      setIsloading(true);
+      const response = await axios.post("/api/user/login", {
+        email,
+        password,
+      });
+      setIsloading(false);
+      localStorage.setItem("userInfo", JSON.stringify(response?.data));
+      navigate("/chats");
+    } catch (err) {
+      setIsloading(false);
+      toast({
+        title: "Error",
+        description: err.response.data?.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -21,12 +61,13 @@ const Login = () => {
       onSubmit={handleSubmit}
     >
       <FormControl id="name" isRequired>
-        <FormLabel>Name</FormLabel>
+        <FormLabel>Email</FormLabel>
         <Input
           size="sm"
           type="text"
           required
           onChange={(e) => setName(e.target.value)}
+          value={email}
         />
       </FormControl>
       <FormControl id="password" isRequired>
@@ -38,6 +79,7 @@ const Login = () => {
             type={showPassword ? "text" : "password"}
             isRequired
             onChange={(e) => setPassword(e.target.value)}
+            value={password}
           />
           <InputRightElement width="4.5rem" height="2rem">
             <Button
@@ -50,7 +92,12 @@ const Login = () => {
           </InputRightElement>
         </InputGroup>
       </FormControl>
-      <Button type="submit" colorScheme="blue" variant="solid">
+      <Button
+        type="submit"
+        colorScheme="blue"
+        variant="solid"
+        isLoading={isLoading}
+      >
         Login
       </Button>
     </Box>

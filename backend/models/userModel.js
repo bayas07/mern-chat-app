@@ -1,27 +1,27 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 
 const userSchema = mongoose.Schema(
   {
     name: { type: "String", required: true },
     email: { type: "String", unique: true, required: true },
     password: { type: "String", required: true },
-    pic: {
+    picture: {
       type: "String",
-      required: true,
       default:
         "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
     },
-    isAdmin: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
+    // isAdmin: {
+    //   type: Boolean,
+    //   required: true,
+    //   default: false,
+    // },
   },
   { timestaps: true }
 );
 
-userSchema.methods.matchPassword = async function (enteredPassword) {
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  console.log(enteredPassword, this.password, "** ");
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
