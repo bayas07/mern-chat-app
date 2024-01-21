@@ -53,7 +53,27 @@ const loginUser = asyncHandler(async (req, res) => {
     email: userEmail,
     password: userPassword,
     picture,
+    token: generateToken(id),
   });
 });
 
-module.exports = { resgisterUser, loginUser };
+const getUser = asyncHandler(async (req, res) => {
+  const { search } = req.query;
+  const keyword = search
+    ? {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+  try {
+    const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(400);
+    throw new Error("Unable to fetch the users");
+  }
+});
+
+module.exports = { resgisterUser, loginUser, getUser };
