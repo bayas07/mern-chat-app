@@ -1,14 +1,15 @@
 const express = require("express");
 const userModel = require("../models/userModel");
-const { resgisterUser, loginUser } = require("../controllers/userControllers");
+const {
+  resgisterUser,
+  loginUser,
+  getUser,
+} = require("../controllers/userControllers");
+const { authTokenVerify } = require("../controllers/authController");
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  const users = await userModel.find();
-  res.send(users);
-});
-
+router.get("/", authTokenVerify, getUser);
 router.post("/signup", resgisterUser);
 router.post("/login", loginUser);
 

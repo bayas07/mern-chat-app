@@ -13,11 +13,16 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsloading] = useState(false);
-  const [email, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const toast = useToast();
   const navigate = useNavigate();
+
+  const handleGuestLogin = () => {
+    setEmail("bay@yopmail.com");
+    setPassword("bay@yopmail.com");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +71,7 @@ const Login = () => {
           size="sm"
           type="text"
           required
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           value={email}
         />
       </FormControl>
@@ -99,6 +104,9 @@ const Login = () => {
         isLoading={isLoading}
       >
         Login
+      </Button>
+      <Button colorScheme="orange" variant="solid" onClick={handleGuestLogin}>
+        Try guest credential
       </Button>
     </Box>
   );
