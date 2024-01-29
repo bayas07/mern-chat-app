@@ -42,9 +42,11 @@ const Login = () => {
         email,
         password,
       });
+      if (response) {
+        localStorage.setItem("userInfo", JSON.stringify(response?.data));
+        navigate("/chat");
+      }
       setIsloading(false);
-      localStorage.setItem("userInfo", JSON.stringify(response?.data));
-      navigate("/chats");
     } catch (err) {
       setIsloading(false);
       toast({
@@ -65,7 +67,7 @@ const Login = () => {
       rowGap={3}
       onSubmit={handleSubmit}
     >
-      <FormControl id="name" isRequired>
+      <FormControl id="login-email" isRequired>
         <FormLabel>Email</FormLabel>
         <Input
           size="sm"
@@ -75,7 +77,7 @@ const Login = () => {
           value={email}
         />
       </FormControl>
-      <FormControl id="password" isRequired>
+      <FormControl id="login-password" isRequired>
         <FormLabel>Password</FormLabel>
         <InputGroup>
           <Input

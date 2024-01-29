@@ -19,7 +19,7 @@ const authTokenVerify = async (req, res, next) => {
     }
   } else {
     res.status(401);
-    throw new Error("Authorization failed");
+    throw new Error("Authorization failed , Please login");
   }
 };
 
