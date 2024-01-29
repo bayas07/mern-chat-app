@@ -42,7 +42,7 @@ const SignUp = () => {
       } catch (err) {
         setIsloading(false);
         toast({
-          title: "Error",
+          title: "Error uploading image",
           description: err.message,
           status: "error",
           duration: 5000,
@@ -93,7 +93,7 @@ const SignUp = () => {
       });
       setIsloading(false);
       localStorage.setItem("userInfo", JSON.stringify(response?.data));
-      navigate("/chats");
+      navigate("/chat");
     } catch (err) {
       setIsloading(false);
       toast({
