@@ -13,23 +13,13 @@ import {
   Box,
   useToast,
   Spinner,
-  Text,
 } from "@chakra-ui/react";
 import axios from "axios";
 import React, { useState } from "react";
 import { useChatState } from "../context/chatContext";
 import ChatUserListItem from "./ChatUserListItem";
-import { CloseIcon } from "@chakra-ui/icons";
-
-const debounceFn = (callbackFn) => {
-  let timeout;
-  return (...args) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      callbackFn(...args);
-    }, 400);
-  };
-};
+import GroupUserListItem from "./GroupUserListItem";
+import { debounceFn } from "../utils";
 
 const GroupModal = ({ children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -172,21 +162,14 @@ const GroupModal = ({ children }) => {
                 onChange={handleSearchUser}
               />
             </FormControl>
-            <Box display="flex" columnGap={2} marginBottom={3}>
+            <Box display="flex" flexWrap="wrap" gap={2} marginBottom={3}>
               {selectedUsers.map((user) => {
                 return (
-                  <Box
-                    cursor="pointer"
-                    onClick={() => handleRemoveUser(user)}
-                    backgroundColor="burlywood"
-                    borderRadius={5}
-                    padding="0 5px"
-                  >
-                    <Text fontSize="small">
-                      {user.name}
-                      <CloseIcon marginLeft={1} boxSize="8px" />
-                    </Text>
-                  </Box>
+                  <GroupUserListItem
+                    user={user}
+                    key={user._id}
+                    onClick={handleRemoveUser}
+                  />
                 );
               })}
             </Box>

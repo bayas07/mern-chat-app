@@ -8,11 +8,18 @@ import { getSender } from "../utils/chatUtils";
 import GroupModal from "./GroupModal";
 
 const MyChats = () => {
-  const { setChats, user, selectedChat, setSelectedChat, chats } =
-    useChatState();
+  const {
+    setChats,
+    user,
+    selectedChat,
+    setSelectedChat,
+    chats,
+    fetchChats,
+    setFetchChats,
+  } = useChatState();
   const toast = useToast();
 
-  const fetchChats = useCallback(async () => {
+  const fetchAllChats = useCallback(async () => {
     const headerConfig = {
       headers: {
         Authorization: `Bearer ${user.token}`,
@@ -31,10 +38,11 @@ const MyChats = () => {
         position: "bottom-left",
       });
     }
-  }, [setChats, user.token, toast]);
+    setFetchChats(false);
+  }, []);
 
   useEffect(() => {
-    fetchChats();
+    fetchChats && fetchAllChats();
   }, [fetchChats]);
   return (
     <Box
@@ -44,6 +52,7 @@ const MyChats = () => {
       padding={4}
       display={{ base: selectedChat ? "none" : "flex", md: "flex" }}
       flexDir="column"
+      rowGap={3}
     >
       <Box display="flex" width="100%" justifyContent="space-between">
         <Text fontSize="xl">My Chats</Text>
@@ -53,12 +62,7 @@ const MyChats = () => {
           </Button>
         </GroupModal>
       </Box>
-      <Box
-        height="100%"
-        marginTop={3}
-        overflowY="scroll"
-        className="scrollable-box"
-      >
+      <Box height="100%" overflowY="scroll" className="scrollable-box">
         {!chats ? (
           <ChatSkeleton />
         ) : (
