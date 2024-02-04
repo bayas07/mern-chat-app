@@ -14,3 +14,10 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.message-feed {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  row-gap: 5px;
+}

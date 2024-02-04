@@ -25,7 +25,7 @@ const Chat = () => {
       <Header onDrawerOpen={onOpen} onLogout={handleLogout} />
       <Box display="flex" flexDirection="row" height="88vh" gap={3} margin={3}>
         <MyChats />
-        <ChatBox />
+        <ChatBox onDrawerOpen={onOpen} />
       </Box>
     </>
   );

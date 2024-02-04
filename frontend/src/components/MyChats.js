@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect } from "react";
 import { useChatState } from "../context/chatContext";
-import { useToast, Box, Text, Button } from "@chakra-ui/react";
+import { useToast, Box, Text, Button, Avatar } from "@chakra-ui/react";
 import axios from "axios";
 import { AddIcon } from "@chakra-ui/icons";
 import ChatSkeleton from "./ChatSkeleton";
-import { getSender } from "../utils/chatUtils";
+import { getSenderInfo } from "../utils/chatUtils";
 import GroupModal from "./GroupModal";
 
 const MyChats = () => {
@@ -63,10 +63,11 @@ const MyChats = () => {
         </GroupModal>
       </Box>
       <Box height="100%" overflowY="scroll" className="scrollable-box">
-        {!chats ? (
+        {!chats.length ? (
           <ChatSkeleton />
         ) : (
           chats.map((chat) => {
+            let sender = getSenderInfo(chat.users, user);
             return (
               <Box
                 padding={2}
@@ -77,11 +78,13 @@ const MyChats = () => {
                 cursor="pointer"
                 borderRadius={5}
                 onClick={() => setSelectedChat(chat)}
+                display="flex"
+                alignItems="center"
+                gap="0 8px"
               >
+                <Avatar size="sm" name={sender.name} src={sender.picture} />
                 <Text fontFamily="poppins" fontSize="sm">
-                  {!chat.isGroupChat
-                    ? getSender(chat.users, user)
-                    : chat.chatName}
+                  {!chat.isGroupChat ? sender.name : chat.chatName}
                 </Text>
               </Box>
             );

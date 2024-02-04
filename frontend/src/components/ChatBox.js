@@ -1,16 +1,100 @@
-import { Box, IconButton, Text } from "@chakra-ui/react";
-import React from "react";
+import {
+  Box,
+  FormControl,
+  IconButton,
+  Input,
+  Spinner,
+  Text,
+  useToast,
+} from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
 import { useChatState } from "../context/chatContext";
 import { getSender, getSenderInfo } from "../utils/chatUtils";
 import { ArrowBackIcon, ViewIcon } from "@chakra-ui/icons";
 import ProfileModal from "./ProfileModal";
 import GroupUpdateModal from "./GroupUpdateModal";
+import axios from "axios";
+import ScrollableChatFeed from "./ScrollableChatFeed";
 
 const ChatBox = () => {
   const { selectedChat, user, setSelectedChat } = useChatState();
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsloading] = useState(false);
+  const [allMessages, setAllMessages] = useState([]);
+
+  const toast = useToast();
+
   const handleBackToUsers = () => {
     setSelectedChat(null);
   };
+  const handleMessage = (event) => {
+    setMessage(event.target.value);
+  };
+  const handleSendMessage = async (event) => {
+    if (event.key === "Enter") {
+      if (!message.trim()) {
+        toast({
+          title: "Error occured!",
+          description: "Please enter something to send",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+      const headerConfig = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      try {
+        setMessage("");
+        const { data } = await axios.post(
+          "api/message",
+          { chatId: selectedChat._id, content: message },
+          headerConfig
+        );
+        setAllMessages((messages) => [...messages, data]);
+      } catch (err) {
+        toast({
+          title: "Error occured!",
+          description: err.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+  const fetchAllMessages = async () => {
+    const headerConfig = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+    try {
+      setIsloading(true);
+      const { data } = await axios.get(
+        `api/message/${selectedChat._id}`,
+        headerConfig
+      );
+      setAllMessages(data);
+      setIsloading(false);
+    } catch (err) {
+      setIsloading(false);
+      toast({
+        title: "Error occured!",
+        description: err.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  useEffect(() => {
+    selectedChat && fetchAllMessages();
+  }, [selectedChat]);
   return (
     <Box
       backgroundColor="#ffffff"
@@ -52,7 +136,25 @@ const ChatBox = () => {
             width="100%"
             height="100%"
             borderRadius={10}
-          ></Box>
+            padding={3}
+            overflowY="hidden"
+            display="flex"
+          >
+            {isLoading ? (
+              <Spinner margin="0 auto" size="lg" alignSelf="center" />
+            ) : (
+              <ScrollableChatFeed messages={allMessages} user={user} />
+            )}
+          </Box>
+          <FormControl>
+            <Input
+              type="text"
+              onChange={handleMessage}
+              placeholder="Type something..."
+              onKeyDown={handleSendMessage}
+              value={message}
+            />
+          </FormControl>
         </>
       )}
     </Box>
