@@ -7,7 +7,7 @@ import ChatSkeleton from "./ChatSkeleton";
 import { getSenderInfo } from "../utils/chatUtils";
 import GroupModal from "./GroupModal";
 
-const MyChats = () => {
+const UserChatsList = () => {
   const {
     setChats,
     user,
@@ -95,4 +95,4 @@ const MyChats = () => {
   );
 };
 
-export default MyChats;
+export default UserChatsList;

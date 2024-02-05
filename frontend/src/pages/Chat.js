@@ -5,7 +5,7 @@ import { Box, useDisclosure } from "@chakra-ui/react";
 import Header from "../components/Header";
 import SideDrawer from "../components/SideDrawer";
 import ChatBox from "../components/ChatBox";
-import MyChats from "../components/MyChats";
+import UserChatsList from "../components/UserChatsList";
 
 const Chat = () => {
   const { user } = useChatState();
@@ -24,7 +24,7 @@ const Chat = () => {
       <SideDrawer isOpen={isOpen} onClose={onClose} />
       <Header onDrawerOpen={onOpen} onLogout={handleLogout} />
       <Box display="flex" flexDirection="row" height="88vh" gap={3} margin={3}>
-        <MyChats />
+        <UserChatsList />
         <ChatBox onDrawerOpen={onOpen} />
       </Box>
     </>

@@ -2,8 +2,9 @@ import { Avatar, Box } from "@chakra-ui/react";
 import React from "react";
 import ScrollableFeed from "react-scrollable-feed";
 import { verifySameUser, hasPrevMsgFromSender } from "../utils/chatUtils";
+import TypingIndicator from "./TypingIndicator";
 
-const ScrollableChatFeed = ({ messages, user }) => {
+const ScrollableChatFeed = ({ messages, user, isTyping }) => {
   return (
     <ScrollableFeed className="message-feed scrollable-box">
       {messages.map((message, index, arr) => {
@@ -43,6 +44,7 @@ const ScrollableChatFeed = ({ messages, user }) => {
           </Box>
         );
       })}
+      {isTyping && <TypingIndicator />}
     </ScrollableFeed>
   );
 };

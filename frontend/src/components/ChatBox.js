@@ -15,23 +15,39 @@ import ProfileModal from "./ProfileModal";
 import GroupUpdateModal from "./GroupUpdateModal";
 import axios from "axios";
 import ScrollableChatFeed from "./ScrollableChatFeed";
+import io from "socket.io-client";
+
+const END_POINT = "http://localhost:3000";
+let socket;
+let timeout;
 
 const ChatBox = () => {
   const { selectedChat, user, setSelectedChat } = useChatState();
   const [message, setMessage] = useState("");
   const [isLoading, setIsloading] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const toast = useToast();
 
   const handleBackToUsers = () => {
     setSelectedChat(null);
   };
+
   const handleMessage = (event) => {
     setMessage(event.target.value);
+    if (!isSocketConnected) return;
+    !isTyping && socket.emit("typing", selectedChat._id);
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      socket.emit("stopped-typing", selectedChat._id);
+    }, 2000);
   };
+
   const handleSendMessage = async (event) => {
     if (event.key === "Enter") {
+      socket.emit("stopped-typing", selectedChat._id);
       if (!message.trim()) {
         toast({
           title: "Error occured!",
@@ -54,6 +70,7 @@ const ChatBox = () => {
           { chatId: selectedChat._id, content: message },
           headerConfig
         );
+        socket.emit("send-message", data);
         setAllMessages((messages) => [...messages, data]);
       } catch (err) {
         toast({
@@ -66,6 +83,7 @@ const ChatBox = () => {
       }
     }
   };
+
   const fetchAllMessages = async () => {
     const headerConfig = {
       headers: {
@@ -78,6 +96,7 @@ const ChatBox = () => {
         `api/message/${selectedChat._id}`,
         headerConfig
       );
+      socket.emit("join-chat", selectedChat._id);
       setAllMessages(data);
       setIsloading(false);
     } catch (err) {
@@ -91,6 +110,17 @@ const ChatBox = () => {
       });
     }
   };
+
+  useEffect(() => {
+    socket = io(END_POINT);
+    socket.emit("setup", user);
+    socket.on("connect", () => setIsSocketConnected(true));
+    socket.on("receive-message", (newMessage) => {
+      setAllMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stopped-typing", () => setIsTyping(false));
+  }, []);
 
   useEffect(() => {
     selectedChat && fetchAllMessages();
@@ -143,7 +173,11 @@ const ChatBox = () => {
             {isLoading ? (
               <Spinner margin="0 auto" size="lg" alignSelf="center" />
             ) : (
-              <ScrollableChatFeed messages={allMessages} user={user} />
+              <ScrollableChatFeed
+                messages={allMessages}
+                user={user}
+                isTyping={isTyping}
+              />
             )}
           </Box>
           <FormControl>
