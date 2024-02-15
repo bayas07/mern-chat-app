@@ -17,49 +17,48 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [picture, setPicture] = useState();
   const [isLoading, setIsloading] = useState(false);
 
   const toast = useToast();
   const navigate = useNavigate();
 
-  const uploadPicHandler = async (event) => {
-    const pic = event.target.files[0];
-    const cloudName = process.env.CLOUD_NAME;
-    if (pic.type === "image/png" || pic.type === "image/jpeg") {
-      setIsloading(true);
-      const data = new FormData();
-      data.append("file", pic);
-      data.append("upload_preset", "chatApp");
-      data.append("cloud_name", cloudName);
-      try {
-        const response = await axios.post(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          data
-        );
-        setPicture(response.data?.url);
-        setIsloading(false);
-      } catch (err) {
-        setIsloading(false);
-        toast({
-          title: "Error uploading image",
-          description: err.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    } else {
-      setIsloading(false);
-      toast({
-        title: "Error",
-        description: "Unable to upload your image",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
+  // const uploadPicHandler = async (event) => {
+  //   const pic = event.target.files[0];
+  //   const cloudName = process.env.CLOUD_NAME;
+  //   if (pic.type === "image/png" || pic.type === "image/jpeg") {
+  //     setIsloading(true);
+  //     const data = new FormData();
+  //     data.append("file", pic);
+  //     data.append("upload_preset", "chatApp");
+  //     data.append("cloud_name", cloudName);
+  //     try {
+  //       const response = await axios.post(
+  //         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+  //         data
+  //       );
+  //       setPicture(response.data?.url);
+  //       setIsloading(false);
+  //     } catch (err) {
+  //       setIsloading(false);
+  //       toast({
+  //         title: "Error uploading image",
+  //         description: err.message,
+  //         status: "error",
+  //         duration: 5000,
+  //         isClosable: true,
+  //       });
+  //     }
+  //   } else {
+  //     setIsloading(false);
+  //     toast({
+  //       title: "Error",
+  //       description: "Unable to upload your image",
+  //       status: "error",
+  //       duration: 5000,
+  //       isClosable: true,
+  //     });
+  //   }
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,11 +84,14 @@ const SignUp = () => {
     }
     try {
       setIsloading(true);
+      const picUrl = `https://api.multiavatar.com/${
+        name.split(" ")[0]
+      }_${Math.round(Math.random() * 999)}.svg`;
       const response = await axios.post("/api/user/signup", {
         name,
         email,
         password,
-        picture,
+        picture: picUrl,
       });
       setIsloading(false);
       localStorage.setItem("userInfo", JSON.stringify(response?.data));
@@ -175,7 +177,7 @@ const SignUp = () => {
           </InputRightElement>
         </InputGroup>
       </FormControl>
-      <FormControl>
+      {/* <FormControl>
         <FormLabel>Upload your image</FormLabel>
         <Input
           size="md"
@@ -184,7 +186,7 @@ const SignUp = () => {
           paddingTop={1}
           onChange={uploadPicHandler}
         />
-      </FormControl>
+      </FormControl> */}
       <Button
         type="submit"
         colorScheme="blue"

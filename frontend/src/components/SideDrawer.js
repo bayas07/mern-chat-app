@@ -84,6 +84,7 @@ const SideDrawer = ({ isOpen, onClose }) => {
       }
       setSelectedChat(data);
       setIsChatloading(false);
+      onClose();
     } catch (err) {
       setIsChatloading(false);
       toast({

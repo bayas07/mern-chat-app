@@ -19,9 +19,14 @@ const Login = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  const handleGuestLogin = () => {
-    setEmail("bay@yopmail.com");
-    setPassword("bay@yopmail.com");
+  const handleGuestLogin1 = () => {
+    setEmail("bay123@yopmail.com");
+    setPassword("bay123@yopmail.com");
+  };
+
+  const handleGuestLogin2 = () => {
+    setEmail("suriya123@yopmail.com");
+    setPassword("suriya123@yopmail.com");
   };
 
   const handleSubmit = async (e) => {
@@ -107,8 +112,11 @@ const Login = () => {
       >
         Login
       </Button>
-      <Button colorScheme="orange" variant="solid" onClick={handleGuestLogin}>
-        Try guest credential
+      <Button colorScheme="orange" variant="solid" onClick={handleGuestLogin1}>
+        Try guest credential 1
+      </Button>
+      <Button colorScheme="green" variant="solid" onClick={handleGuestLogin2}>
+        Try guest credential 2
       </Button>
     </Box>
   );

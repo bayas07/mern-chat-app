@@ -52,7 +52,6 @@ io.on("connection", (socket) => {
 
     message.chat.users.forEach((user) => {
       if (user._id !== message.sender._id) {
-        console.log("** 1 time");
         socket.in(user._id).emit("receive-message", message);
       }
     });

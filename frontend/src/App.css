@@ -37,6 +37,10 @@
   width: 8px;
 }
 
+.pop-up-animation {
+  animation: popup 0.4s;
+}
+
 @keyframes mercuryTypingAnimation {
   0% {
     transform: translateY(0px)
@@ -48,6 +52,32 @@
 
   44% {
     transform: translateY(0px)
+  }
+}
+
+@keyframes popup {
+  0% {
+    transform: scale(1);
+  }
+
+  20% {
+    transform: scale(1.1);
+  }
+
+  40% {
+    transform: scale(1.2);
+  }
+
+  60% {
+    transform: scale(1.25);
+  }
+
+  80% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
   }
 }
 

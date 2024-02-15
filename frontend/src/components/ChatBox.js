@@ -20,9 +20,16 @@ import io from "socket.io-client";
 const END_POINT = "http://localhost:3000";
 let socket;
 let timeout;
+let compareChat;
 
 const ChatBox = () => {
-  const { selectedChat, user, setSelectedChat } = useChatState();
+  const {
+    selectedChat,
+    user,
+    setSelectedChat,
+    setNotifications,
+    setFetchChats,
+  } = useChatState();
   const [message, setMessage] = useState("");
   const [isLoading, setIsloading] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
@@ -71,6 +78,7 @@ const ChatBox = () => {
           headerConfig
         );
         socket.emit("send-message", data);
+        setFetchChats(true);
         setAllMessages((messages) => [...messages, data]);
       } catch (err) {
         toast({
@@ -115,16 +123,23 @@ const ChatBox = () => {
     socket = io(END_POINT);
     socket.emit("setup", user);
     socket.on("connect", () => setIsSocketConnected(true));
-    socket.on("receive-message", (newMessage) => {
-      setAllMessages((prevMessages) => [...prevMessages, newMessage]);
-    });
     socket.on("typing", () => setIsTyping(true));
     socket.on("stopped-typing", () => setIsTyping(false));
+    socket.on("receive-message", (newMessage) => {
+      setFetchChats(true);
+      if (!compareChat || compareChat?._id !== newMessage?.chat?._id) {
+        setNotifications((prevData) => [newMessage, ...prevData]);
+      }
+      compareChat &&
+        setAllMessages((prevMessages) => [newMessage, ...prevMessages]);
+    });
   }, []);
 
   useEffect(() => {
     selectedChat && fetchAllMessages();
+    compareChat = selectedChat;
   }, [selectedChat]);
+
   return (
     <Box
       backgroundColor="#ffffff"

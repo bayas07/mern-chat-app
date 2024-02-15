@@ -24,7 +24,7 @@ const Chat = () => {
       <SideDrawer isOpen={isOpen} onClose={onClose} />
       <Header onDrawerOpen={onOpen} onLogout={handleLogout} />
       <Box display="flex" flexDirection="row" height="88vh" gap={3} margin={3}>
-        <UserChatsList />
+        <UserChatsList closeDrawer={onClose} />
         <ChatBox onDrawerOpen={onOpen} />
       </Box>
     </>
