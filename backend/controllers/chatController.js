@@ -68,7 +68,7 @@ const fetchChat = asyncHandler(async (req, res) => {
 });
 
 const createGroupChat = asyncHandler(async (req, res) => {
-  const { name, users } = req.body;
+  const { name, users, groupChatPicture } = req.body;
   if (!name || !users) {
     res.status(400);
     throw new Error("Please fill all the required fields");
@@ -82,6 +82,7 @@ const createGroupChat = asyncHandler(async (req, res) => {
     const groupChat = await Chat.create({
       chatName: name,
       isGroupChat: true,
+      groupChatPicture,
       users: users,
       groupAdmin: req.user._id,
     });

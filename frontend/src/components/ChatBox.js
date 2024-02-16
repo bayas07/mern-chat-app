@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   FormControl,
   IconButton,
@@ -163,17 +164,38 @@ const ChatBox = () => {
               display={{ base: "block", md: "none" }}
               onClick={handleBackToUsers}
             />
-            <Text>
-              {selectedChat.isGroupChat
-                ? selectedChat.chatName
-                : getSender(selectedChat.users, user)}
-            </Text>
             {!selectedChat.isGroupChat ? (
               <ProfileModal user={getSenderInfo(selectedChat.users, user)}>
-                <IconButton icon={<ViewIcon />} size="sm" />
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap="0 10px"
+                  cursor="pointer"
+                >
+                  <Avatar
+                    size="sm"
+                    name={getSenderInfo(selectedChat.users, user).name}
+                    src={getSenderInfo(selectedChat.users, user).picture}
+                  />
+                  <Text>{getSender(selectedChat.users, user)}</Text>
+                </Box>
               </ProfileModal>
             ) : (
-              <GroupUpdateModal />
+              <GroupUpdateModal>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap="0 10px"
+                  cursor="pointer"
+                >
+                  <Avatar
+                    size="sm"
+                    name={selectedChat.chatName}
+                    src={selectedChat?.groupChatPicture}
+                  />
+                  <Text>{selectedChat.chatName}</Text>
+                </Box>
+              </GroupUpdateModal>
             )}
           </Box>
           <Box

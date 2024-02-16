@@ -17,7 +17,7 @@ import {
 import axios from "axios";
 import React, { useState } from "react";
 import { useChatState } from "../context/chatContext";
-import ChatUserListItem from "./ChatUserListItem";
+import UserListItem from "./UserListItem";
 import GroupUserListItem from "./GroupUserListItem";
 import { debounceFn } from "../utils";
 
@@ -87,7 +87,12 @@ const GroupModal = ({ children }) => {
     try {
       setIsCreateGroupLoading(true);
       const users = selectedUsers.map((user) => user._id);
-      const payload = { name: groupName, users };
+      const payload = {
+        name: groupName,
+        users,
+        groupChatPicture:
+          "https://img.freepik.com/free-vector/happy-young-people_24908-56802.jpg?w=826&t=st=1707985171~exp=1707985771~hmac=edb0aae5340f81d545328357fe278b334592b91d02a9f854f8fd74029a099665",
+      };
       const { data } = await axios.post(
         "api/chat/createGroup",
         payload,
@@ -179,7 +184,7 @@ const GroupModal = ({ children }) => {
               <>
                 {searchResults.slice(0, 3).map((user) => {
                   return (
-                    <ChatUserListItem
+                    <UserListItem
                       key={user.id}
                       userData={user}
                       onItemClick={() => handleSelectUser(user)}

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { ViewIcon } from "@chakra-ui/icons";
 import {
   Modal,
   useDisclosure,
@@ -11,7 +10,6 @@ import {
   Box,
   ModalFooter,
   Button,
-  IconButton,
   FormControl,
   Input,
   useToast,
@@ -21,8 +19,8 @@ import { useChatState } from "../context/chatContext";
 import GroupUserListItem from "./GroupUserListItem";
 import axios from "axios";
 import { debounceFn } from "../utils";
-import ChatUserListItem from "./ChatUserListItem";
-const GroupUpdateModal = () => {
+import UserListItem from "./UserListItem";
+const GroupUpdateModal = ({ children }) => {
   const [isUserListLoading, setIsUserListloading] = useState(false);
   const [isUpdateNameLoading, setIsUpdateNameloading] = useState(false);
   const [chatName, setChatName] = useState("");
@@ -151,7 +149,7 @@ const GroupUpdateModal = () => {
   };
   return (
     <>
-      <IconButton icon={<ViewIcon />} size="sm" onClick={onOpen} />
+      {<Box onClick={onOpen}>{children}</Box>}
       <Modal isOpen={isOpen} onClose={handleModalClose}>
         <ModalOverlay />
         <ModalContent>
@@ -210,7 +208,7 @@ const GroupUpdateModal = () => {
                   <>
                     {searchResults.slice(0, 4).map((user) => {
                       return (
-                        <ChatUserListItem
+                        <UserListItem
                           key={user.id}
                           userData={user}
                           onItemClick={() => handleAddUser(user)}

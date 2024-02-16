@@ -1,14 +1,14 @@
 import React from "react";
 import { Box, Text, Avatar } from "@chakra-ui/react";
 
-const ChatUserListItem = ({ userData, onItemClick }) => {
+const UserListItem = ({ userData, onItemClick }) => {
   return (
     <Box
       display="flex"
       cursor="pointer"
       onClick={onItemClick}
       padding={2}
-      backgroundColor="#D3D3D3"
+      backgroundColor="#F0F2F5"
       _hover={{ backgroundColor: "#60C9CB" }}
       borderRadius={10}
       columnGap={3}
@@ -24,4 +24,4 @@ const ChatUserListItem = ({ userData, onItemClick }) => {
   );
 };
 
-export default ChatUserListItem;
+export default UserListItem;

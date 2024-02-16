@@ -13,7 +13,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import ChatSkeleton from "../components/ChatSkeleton";
-import ChatUserListItem from "../components/ChatUserListItem";
+import UserListItem from "./UserListItem";
 import axios from "axios";
 import { useChatState } from "../context/chatContext";
 
@@ -118,7 +118,7 @@ const SideDrawer = ({ isOpen, onClose }) => {
             <>
               {searchResults.map((user) => {
                 return (
-                  <ChatUserListItem
+                  <UserListItem
                     key={user.id}
                     userData={user}
                     onItemClick={() => accessChat(user)}
