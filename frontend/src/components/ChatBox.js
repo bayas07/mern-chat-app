@@ -11,12 +11,12 @@ import {
 import React, { useEffect, useState } from "react";
 import { useChatState } from "../context/chatContext";
 import { getSender, getSenderInfo } from "../utils/chatUtils";
-import { ArrowBackIcon, ViewIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon } from "@chakra-ui/icons";
 import ProfileModal from "./ProfileModal";
 import GroupUpdateModal from "./GroupUpdateModal";
-import axios from "axios";
 import ScrollableChatFeed from "./ScrollableChatFeed";
 import io from "socket.io-client";
+import { useAxios } from "../customHooks/useAxios";
 
 const END_POINT = "http://localhost:3000";
 let socket;
@@ -32,10 +32,23 @@ const ChatBox = () => {
     setFetchChats,
   } = useChatState();
   const [message, setMessage] = useState("");
-  const [isLoading, setIsloading] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const {
+    data: messageData,
+    error: messageError,
+    fetchData: fetchAllMessages,
+    loading,
+  } = useAxios(`api/message/${selectedChat?._id}`, []);
+  const {
+    data: sendMessageData = {},
+    error: sendMessageError,
+    fetchData: sendMessage,
+  } = useAxios(`api/message`, {}, "post", {
+    chatId: selectedChat?._id,
+    content: message,
+  });
 
   const toast = useToast();
 
@@ -66,59 +79,45 @@ const ChatBox = () => {
         });
         return;
       }
-      const headerConfig = {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
-      try {
-        setMessage("");
-        const { data } = await axios.post(
-          "api/message",
-          { chatId: selectedChat._id, content: message },
-          headerConfig
-        );
-        socket.emit("send-message", data);
-        setFetchChats(true);
-        setAllMessages((messages) => [...messages, data]);
-      } catch (err) {
-        toast({
-          title: "Error occured!",
-          description: err.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
+      setMessage("");
+      sendMessage();
     }
   };
 
-  const fetchAllMessages = async () => {
-    const headerConfig = {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    };
-    try {
-      setIsloading(true);
-      const { data } = await axios.get(
-        `api/message/${selectedChat._id}`,
-        headerConfig
-      );
-      socket.emit("join-chat", selectedChat._id);
-      setAllMessages(data);
-      setIsloading(false);
-    } catch (err) {
-      setIsloading(false);
+  useEffect(() => {
+    if (Object.entries(sendMessageData).length) {
+      socket.emit("send-message", sendMessageData);
+      setFetchChats(true);
+      setAllMessages((messages) => [...messages, sendMessageData]);
+    }
+    if (sendMessageError) {
       toast({
         title: "Error occured!",
-        description: err.message,
+        description: sendMessageError.message,
         status: "error",
         duration: 5000,
         isClosable: true,
       });
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, sendMessageData, sendMessageError]);
+
+  useEffect(() => {
+    if (messageData.length) {
+      setAllMessages(messageData);
+      socket.emit("join-chat", selectedChat._id);
+    }
+    if (messageError) {
+      toast({
+        title: "Error occured!",
+        description: messageError.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, messageData, messageError, selectedChat]);
 
   useEffect(() => {
     socket = io(END_POINT);
@@ -134,11 +133,13 @@ const ChatBox = () => {
       compareChat &&
         setAllMessages((prevMessages) => [newMessage, ...prevMessages]);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     selectedChat && fetchAllMessages();
     compareChat = selectedChat;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChat]);
 
   return (
@@ -207,7 +208,7 @@ const ChatBox = () => {
             overflowY="hidden"
             display="flex"
           >
-            {isLoading ? (
+            {loading ? (
               <Spinner margin="0 auto" size="lg" alignSelf="center" />
             ) : (
               <ScrollableChatFeed

@@ -1,48 +1,52 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useChatState } from "../context/chatContext";
 import { useToast, Box, Text, Button, Avatar } from "@chakra-ui/react";
-import axios from "axios";
 import { AddIcon } from "@chakra-ui/icons";
 import ChatSkeleton from "./ChatSkeleton";
 import { getSenderInfo } from "../utils/chatUtils";
 import GroupModal from "./GroupModal";
+import { useAxios } from "../customHooks/useAxios";
 
 const UserChatsList = () => {
   const {
+    chats,
     setChats,
     user,
     selectedChat,
     setSelectedChat,
-    chats,
     fetchChats,
     setFetchChats,
   } = useChatState();
   const toast = useToast();
 
-  const fetchAllChats = useCallback(async () => {
-    const headerConfig = {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    };
-    try {
-      const { data } = await axios.get("api/chat", headerConfig);
-      setChats(data);
-    } catch (err) {
+  const {
+    data: chatsData,
+    loading,
+    error,
+    fetchData: fetchUsersData,
+  } = useAxios("api/chat", []);
+
+  useEffect(() => {
+    if (error) {
       toast({
         title: "Unable to fetch the chats",
-        description: err.message,
+        description: error.message,
         status: "error",
         duration: 5000,
         isClosable: true,
         position: "bottom-left",
       });
     }
-    setFetchChats(false);
-  }, []);
+    if (chatsData.length) {
+      setChats(chatsData);
+      setFetchChats(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error, chatsData]);
 
   useEffect(() => {
-    fetchChats && fetchAllChats();
+    fetchChats && fetchUsersData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchChats]);
 
   const getNameAndLatestMsg = (chat) => {
@@ -80,7 +84,7 @@ const UserChatsList = () => {
         </GroupModal>
       </Box>
       <Box height="100%" overflowY="scroll" className="scrollable-box">
-        {!chats.length ? (
+        {!chats.length && loading ? (
           <ChatSkeleton />
         ) : (
           chats.map((chat) => {
@@ -98,6 +102,7 @@ const UserChatsList = () => {
                 display="flex"
                 alignItems="center"
                 gap="0 8px"
+                key={chat._id}
               >
                 <Avatar
                   size="sm"
