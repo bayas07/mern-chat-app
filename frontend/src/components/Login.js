@@ -6,15 +6,25 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAxios } from "../customHooks/useAxios";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsloading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const {
+    data: loginData,
+    fetchData: login,
+    loading,
+    error: loginError,
+  } = useAxios({
+    url: "/api/user/login",
+    method: "post",
+    payload: { email, password },
+    sendToken: false,
+  });
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -42,18 +52,8 @@ const Login = () => {
       return;
     }
     try {
-      setIsloading(true);
-      const response = await axios.post("/api/user/login", {
-        email,
-        password,
-      });
-      if (response) {
-        localStorage.setItem("userInfo", JSON.stringify(response?.data));
-        navigate("/chat");
-      }
-      setIsloading(false);
+      login();
     } catch (err) {
-      setIsloading(false);
       toast({
         title: "Error",
         description: err.response.data?.message,
@@ -63,6 +63,23 @@ const Login = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (loginData) {
+      localStorage.setItem("userInfo", JSON.stringify(loginData));
+      navigate("/chat");
+    }
+    if (loginError) {
+      toast({
+        title: "Error",
+        description: loginError.response.data?.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loginData, loginError]);
 
   return (
     <Box
@@ -108,7 +125,7 @@ const Login = () => {
         type="submit"
         colorScheme="blue"
         variant="solid"
-        isLoading={isLoading}
+        isLoading={loading}
       >
         Login
       </Button>

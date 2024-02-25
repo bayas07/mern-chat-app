@@ -40,14 +40,19 @@ const ChatBox = () => {
     error: messageError,
     fetchData: fetchAllMessages,
     loading,
-  } = useAxios(`api/message/${selectedChat?._id}`, []);
+  } = useAxios({ url: `api/message/${selectedChat?._id}`, defaultState: [] });
   const {
     data: sendMessageData = {},
     error: sendMessageError,
     fetchData: sendMessage,
-  } = useAxios(`api/message`, {}, "post", {
-    chatId: selectedChat?._id,
-    content: message,
+  } = useAxios({
+    url: `api/message`,
+    defaultState: {},
+    method: "post",
+    payload: {
+      chatId: selectedChat?._id,
+      content: message,
+    },
   });
 
   const toast = useToast();

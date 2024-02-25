@@ -6,9 +6,9 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { Input, InputGroup, InputRightElement } from "@chakra-ui/input";
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAxios } from "../customHooks/useAxios";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +17,25 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsloading] = useState(false);
+  const picUrl = `https://api.multiavatar.com/${
+    name.split(" ")[0]
+  }_${Math.round(Math.random() * 999)}.svg`;
+  const {
+    data: signupData,
+    fetchData: signup,
+    error: signupError,
+    loading,
+  } = useAxios({
+    url: "/api/user/signup",
+    method: "post",
+    payload: {
+      name,
+      email,
+      password,
+      picture: picUrl,
+    },
+    sendToken: false,
+  });
 
   const toast = useToast();
   const navigate = useNavigate();
@@ -82,31 +100,25 @@ const SignUp = () => {
       });
       return;
     }
-    try {
-      setIsloading(true);
-      const picUrl = `https://api.multiavatar.com/${
-        name.split(" ")[0]
-      }_${Math.round(Math.random() * 999)}.svg`;
-      const response = await axios.post("/api/user/signup", {
-        name,
-        email,
-        password,
-        picture: picUrl,
-      });
-      setIsloading(false);
-      localStorage.setItem("userInfo", JSON.stringify(response?.data));
+    signup();
+  };
+
+  useEffect(() => {
+    if (signupData) {
+      localStorage.setItem("userInfo", JSON.stringify(signupData));
       navigate("/chat");
-    } catch (err) {
-      setIsloading(false);
+    }
+    if (signupError) {
       toast({
         title: "Error",
-        description: err.response.data?.message,
+        description: signupError.response.data?.message,
         status: "error",
         duration: 5000,
         isClosable: true,
       });
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signupData, signupError]);
 
   return (
     <Box
@@ -191,7 +203,7 @@ const SignUp = () => {
         type="submit"
         colorScheme="blue"
         variant="solid"
-        isLoading={isLoading}
+        isLoading={loading}
       >
         SignUp
       </Button>

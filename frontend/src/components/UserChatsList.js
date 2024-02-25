@@ -24,7 +24,7 @@ const UserChatsList = () => {
     loading,
     error,
     fetchData: fetchUsersData,
-  } = useAxios("api/chat", []);
+  } = useAxios({ url: "api/chat", defaultState: [] });
 
   useEffect(() => {
     if (error) {
