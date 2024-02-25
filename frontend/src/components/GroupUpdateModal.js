@@ -14,6 +14,7 @@ import {
   Input,
   useToast,
   Spinner,
+  Text,
 } from "@chakra-ui/react";
 import { useChatState } from "../context/chatContext";
 import GroupUserListItem from "./GroupUserListItem";
@@ -24,7 +25,7 @@ const GroupUpdateModal = ({ children }) => {
   const [isUserListLoading, setIsUserListloading] = useState(false);
   const [isUpdateNameLoading, setIsUpdateNameloading] = useState(false);
   const [chatName, setChatName] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState(null);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { selectedChat, user, setFetchChats, setSelectedChat } = useChatState();
@@ -97,7 +98,7 @@ const GroupUpdateModal = ({ children }) => {
   const handleUserInputChange = debounceFn(async (event) => {
     const query = event.target.value.trim();
     if (!query) {
-      setSearchResults([]);
+      setSearchResults(null);
       return;
     }
     try {
@@ -206,7 +207,10 @@ const GroupUpdateModal = ({ children }) => {
                   <Spinner size="md" display="flex" margin="0 auto" />
                 ) : (
                   <>
-                    {searchResults.slice(0, 4).map((user) => {
+                    {searchResults?.length === 0 && (
+                      <Text fontSize="md">No Users Found</Text>
+                    )}
+                    {searchResults?.slice(0, 4).map((user) => {
                       return (
                         <UserListItem
                           key={user.id}

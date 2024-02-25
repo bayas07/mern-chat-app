@@ -24,7 +24,7 @@ const UserChatsList = () => {
     loading,
     error,
     fetchData: fetchUsersData,
-  } = useAxios({ url: "api/chat", defaultState: [] });
+  } = useAxios({ url: "api/chat" });
 
   useEffect(() => {
     if (error) {
@@ -37,7 +37,7 @@ const UserChatsList = () => {
         position: "bottom-left",
       });
     }
-    if (chatsData.length) {
+    if (chatsData?.length) {
       setChats(chatsData);
       setFetchChats(false);
     }

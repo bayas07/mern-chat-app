@@ -13,6 +13,7 @@ import {
   Box,
   useToast,
   Spinner,
+  Text,
 } from "@chakra-ui/react";
 import axios from "axios";
 import React, { useState } from "react";
@@ -28,7 +29,7 @@ const GroupModal = ({ children }) => {
 
   const [groupName, setGroupName] = useState("");
   const [loading, setIsloading] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isCreateGroupLoading, setIsCreateGroupLoading] = useState(false);
 
@@ -182,7 +183,10 @@ const GroupModal = ({ children }) => {
               <Spinner size="sm" display="block" margin="0 auto" />
             ) : (
               <>
-                {searchResults.slice(0, 3).map((user) => {
+                {searchResults?.length === 0 && (
+                  <Text fontSize="md">No Users Found</Text>
+                )}
+                {searchResults?.slice(0, 3).map((user) => {
                   return (
                     <UserListItem
                       key={user.id}

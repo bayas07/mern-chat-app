@@ -4,12 +4,11 @@ import { useChatState } from "../context/chatContext";
 
 export const useAxios = ({
   url,
-  defaultState = null,
   sendToken = true,
   method = "get",
   payload = {},
 }) => {
-  const [data, setData] = useState(defaultState);
+  const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setIsLoading] = useState(false);
   const { user } = useChatState();
@@ -18,12 +17,12 @@ export const useAxios = ({
         Authorization: `Bearer ${user.token}`,
       }
     : {};
-  async function fetchData() {
+  async function fetchData(postPayload) {
     setIsLoading(true);
     axios({
       url,
       method: method || "get",
-      data: payload,
+      data: postPayload || payload,
       headers: authHeader,
     })
       .then((response) => {

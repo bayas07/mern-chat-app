@@ -19,6 +19,7 @@ const ScrollableChatFeed = ({ messages, user, isTyping }) => {
             marginLeft={
               verifySameUser(message, index, arr, user) ? "37px" : "0px"
             }
+            key={message._id}
           >
             {hasPrevMsgFromSender(message, index, arr, user) && (
               <Avatar

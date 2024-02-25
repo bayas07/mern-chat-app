@@ -40,14 +40,13 @@ const ChatBox = () => {
     error: messageError,
     fetchData: fetchAllMessages,
     loading,
-  } = useAxios({ url: `api/message/${selectedChat?._id}`, defaultState: [] });
+  } = useAxios({ url: `api/message/${selectedChat?._id}` });
   const {
     data: sendMessageData = {},
     error: sendMessageError,
     fetchData: sendMessage,
   } = useAxios({
     url: `api/message`,
-    defaultState: {},
     method: "post",
     payload: {
       chatId: selectedChat?._id,
@@ -90,7 +89,7 @@ const ChatBox = () => {
   };
 
   useEffect(() => {
-    if (Object.entries(sendMessageData).length) {
+    if (sendMessageData && Object.entries(sendMessageData).length) {
       socket.emit("send-message", sendMessageData);
       setFetchChats(true);
       setAllMessages((messages) => [...messages, sendMessageData]);
@@ -108,7 +107,7 @@ const ChatBox = () => {
   }, [socket, sendMessageData, sendMessageError]);
 
   useEffect(() => {
-    if (messageData.length) {
+    if (messageData?.length) {
       setAllMessages(messageData);
       socket.emit("join-chat", selectedChat._id);
     }
@@ -163,7 +162,7 @@ const ChatBox = () => {
         </Text>
       ) : (
         <>
-          <Box display="flex" justifyContent="space-between" width="100%">
+          <Box display="flex" columnGap={4} width="100%">
             <IconButton
               icon={<ArrowBackIcon />}
               size="sm"
