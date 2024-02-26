@@ -7,7 +7,7 @@ export const useAxios = ({
   sendToken = true,
   method = "get",
   payload = {},
-}) => {
+} = {}) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setIsLoading] = useState(false);
@@ -17,12 +17,12 @@ export const useAxios = ({
         Authorization: `Bearer ${user.token}`,
       }
     : {};
-  async function fetchData(postPayload) {
+  async function fetchData({ headerPayload, apiUrl } = {}) {
     setIsLoading(true);
     axios({
-      url,
+      url: apiUrl || url,
       method: method || "get",
-      data: postPayload || payload,
+      data: headerPayload || payload,
       headers: authHeader,
     })
       .then((response) => {

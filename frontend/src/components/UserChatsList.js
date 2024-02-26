@@ -37,7 +37,7 @@ const UserChatsList = () => {
         position: "bottom-left",
       });
     }
-    if (chatsData?.length) {
+    if (chatsData) {
       setChats(chatsData);
       setFetchChats(false);
     }

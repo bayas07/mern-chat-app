@@ -4,7 +4,7 @@ export const debounceFn = (callbackFn) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       callbackFn(...args);
-    }, 400);
+    }, 500);
   };
 };
 

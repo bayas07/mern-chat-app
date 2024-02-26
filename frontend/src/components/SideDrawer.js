@@ -77,7 +77,9 @@ const SideDrawer = ({ isOpen, onClose }) => {
   }, [searchData, searchError]);
   const accessChat = async (userToChat) => {
     loadChats({
-      userId: userToChat._id,
+      headerPayload: {
+        userId: userToChat._id,
+      },
     });
   };
   useEffect(() => {

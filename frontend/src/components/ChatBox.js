@@ -104,12 +104,12 @@ const ChatBox = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, sendMessageData, sendMessageError]);
+  }, [sendMessageData, sendMessageError]);
 
   useEffect(() => {
     if (messageData?.length) {
       setAllMessages(messageData);
-      socket.emit("join-chat", selectedChat._id);
+      socket.emit("join-chat", selectedChat?._id);
     }
     if (messageError) {
       toast({
@@ -121,7 +121,7 @@ const ChatBox = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, messageData, messageError, selectedChat]);
+  }, [messageData, messageError]);
 
   useEffect(() => {
     socket = io(END_POINT);
@@ -212,7 +212,7 @@ const ChatBox = () => {
             overflowY="hidden"
             display="flex"
           >
-            {loading ? (
+            {loading && !allMessages?.length ? (
               <Spinner margin="0 auto" size="lg" alignSelf="center" />
             ) : (
               <ScrollableChatFeed

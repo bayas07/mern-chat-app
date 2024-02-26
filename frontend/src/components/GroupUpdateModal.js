@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   useDisclosure,
@@ -18,50 +18,66 @@ import {
 } from "@chakra-ui/react";
 import { useChatState } from "../context/chatContext";
 import GroupUserListItem from "./GroupUserListItem";
-import axios from "axios";
 import { debounceFn } from "../utils";
 import UserListItem from "./UserListItem";
+import { useAxios } from "../customHooks/useAxios";
 const GroupUpdateModal = ({ children }) => {
-  const [isUserListLoading, setIsUserListloading] = useState(false);
-  const [isUpdateNameLoading, setIsUpdateNameloading] = useState(false);
   const [chatName, setChatName] = useState("");
   const [searchResults, setSearchResults] = useState(null);
-
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { selectedChat, user, setFetchChats, setSelectedChat } = useChatState();
-  const headerConfig = {
-    headers: {
-      Authorization: `Bearer ${user.token}`,
-    },
-  };
+
+  const {
+    data: addUserData,
+    error: addUserError,
+    fetchData: addUser,
+    loading: addUserLoading,
+  } = useAxios({
+    url: "api/chat/groupAdd",
+    method: "put",
+  });
+
+  const {
+    data: removeUserData,
+    error: removeUserError,
+    fetchData: removeUser,
+  } = useAxios({
+    url: "api/chat/groupRemove",
+    method: "put",
+  });
+
+  const {
+    data: renameGroupData,
+    error: renameGroupError,
+    fetchData: renameGroup,
+    loading: isUpdateNameLoading,
+  } = useAxios({
+    url: "api/chat/renameGroup",
+    method: "put",
+    payload: { chatName, chatGroupId: selectedChat._id },
+  });
+  const {
+    data: searchUserData,
+    error: searchUserError,
+    fetchData: searchUsers,
+    loading: isUserListLoading,
+  } = useAxios();
+
   const toast = useToast();
   const userIsGroupAdmin = selectedChat.groupAdmin._id === user.id;
 
   const handleNameChange = (event) => {
     setChatName(event.target.value);
   };
-  const handleRemoveUser = async (removeUser) => {
+
+  const handleRemoveUser = async (user) => {
     const remove = window.confirm(
-      `Would you like to remove ${removeUser.name} from this group?`
+      `Would you like to remove ${user.name} from this group?`
     );
     if (!remove) return;
-    try {
-      const { data } = await axios.put(
-        "api/chat/groupRemove",
-        { userId: removeUser._id, chatGroupId: selectedChat._id },
-        headerConfig
-      );
-      setSelectedChat(data);
-      setFetchChats(true);
-    } catch (err) {
-      toast({
-        title: "Error occured!",
-        description: err.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
+    removeUser({
+      headerPayload: { userId: user._id, chatGroupId: selectedChat._id },
+    });
   };
   const handleAddUser = async (newUser) => {
     if (selectedChat.users.find((user) => user._id === newUser._id)) {
@@ -74,80 +90,91 @@ const GroupUpdateModal = ({ children }) => {
       });
       return;
     }
-    try {
-      setIsUserListloading(true);
-      const { data } = await axios.put(
-        "api/chat/groupAdd",
-        { userId: newUser._id, chatGroupId: selectedChat._id },
-        headerConfig
-      );
-      setSelectedChat(data);
-      setFetchChats(true);
-      setIsUserListloading(false);
-    } catch (err) {
-      setIsUserListloading(false);
-      toast({
-        title: "Error occured!",
-        description: err.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
+    addUser({
+      headerPayload: { userId: newUser._id, chatGroupId: selectedChat._id },
+    });
   };
+
   const handleUserInputChange = debounceFn(async (event) => {
     const query = event.target.value.trim();
     if (!query) {
       setSearchResults(null);
       return;
     }
-    try {
-      setIsUserListloading(true);
-      const response = await axios.get(
-        `/api/user?search=${query}`,
-        headerConfig
-      );
-      setSearchResults(response.data);
-      setIsUserListloading(false);
-    } catch (err) {
-      setIsUserListloading(false);
-      toast({
-        title: "Unable to load results",
-        description: err.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
+    searchUsers({ apiUrl: `/api/user?search=${query}` });
   });
-  const handleUpdateGroupName = async () => {
-    try {
-      setIsUpdateNameloading(true);
-      const { data } = await axios.put(
-        `api/chat/renameGroup`,
-        { chatName, chatGroupId: selectedChat._id },
-        headerConfig
-      );
-      setSelectedChat(data);
-      setChatName("");
-      setIsUpdateNameloading(false);
-      setFetchChats(true);
-    } catch (err) {
-      setIsUpdateNameloading(false);
-      toast({
-        title: "Error Occured!!",
-        description: err.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
+
   const handleModalClose = () => {
     setChatName("");
     setSearchResults([]);
     onClose();
   };
+
+  useEffect(() => {
+    if (searchUserData) {
+      setSearchResults(searchUserData);
+    }
+    if (searchUserError) {
+      toast({
+        title: "Unable to load results",
+        description: searchUserError.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchUserData, searchUserError]);
+
+  useEffect(() => {
+    if (addUserData) {
+      setSelectedChat(addUserData);
+    }
+    if (addUserError) {
+      toast({
+        title: "Error occured!",
+        description: addUserError.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addUserData, addUserError]);
+
+  useEffect(() => {
+    if (removeUserData) {
+      setSelectedChat(removeUserData);
+    }
+    if (removeUserError) {
+      toast({
+        title: "Error occured!",
+        description: removeUserError.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [removeUserData, removeUserError]);
+
+  useEffect(() => {
+    if (renameGroupData) {
+      setFetchChats(true);
+      setChatName("");
+      setSelectedChat(renameGroupData);
+    }
+    if (renameGroupError) {
+      toast({
+        title: "Error Occured!!",
+        description: renameGroupError.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renameGroupData, renameGroupError]);
   return (
     <>
       {<Box onClick={onOpen}>{children}</Box>}
@@ -186,7 +213,7 @@ const GroupUpdateModal = ({ children }) => {
               <Button
                 backgroundColor="#60C9CB"
                 size="md"
-                onClick={handleUpdateGroupName}
+                onClick={() => renameGroup()}
                 isLoading={isUpdateNameLoading}
               >
                 Update
@@ -203,7 +230,7 @@ const GroupUpdateModal = ({ children }) => {
                     placeholder="Search user to add into the group"
                   />
                 </FormControl>
-                {isUserListLoading ? (
+                {isUserListLoading || addUserLoading ? (
                   <Spinner size="md" display="flex" margin="0 auto" />
                 ) : (
                   <>

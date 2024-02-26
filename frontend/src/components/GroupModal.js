@@ -15,53 +15,42 @@ import {
   Spinner,
   Text,
 } from "@chakra-ui/react";
-import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useChatState } from "../context/chatContext";
 import UserListItem from "./UserListItem";
 import GroupUserListItem from "./GroupUserListItem";
 import { debounceFn } from "../utils";
+import { useAxios } from "../customHooks/useAxios";
 
 const GroupModal = ({ children }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { user, setChats, setSelectedChat } = useChatState();
+  const { setChats, setSelectedChat } = useChatState();
   const toast = useToast();
 
   const [groupName, setGroupName] = useState("");
-  const [loading, setIsloading] = useState(false);
   const [searchResults, setSearchResults] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [isCreateGroupLoading, setIsCreateGroupLoading] = useState(false);
+  const {
+    data: searchUserData,
+    error: searchUserError,
+    fetchData: searchUser,
+    loading,
+  } = useAxios();
+  const {
+    data: createGroupData,
+    error: createGroupError,
+    fetchData: createGroup,
+    loading: isCreateGroupLoading,
+  } = useAxios({ url: "api/chat/createGroup", method: "post" });
 
   const handleNameInputChange = (event) => {
     setGroupName(event.target.value);
   };
+
   const handleSearchUser = debounceFn(async (event) => {
     const query = event.target.value.trim();
-    const headerConfig = {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    };
-    try {
-      if (!query) return;
-      setIsloading(true);
-      const response = await axios.get(
-        `/api/user?search=${query}`,
-        headerConfig
-      );
-      setSearchResults(response.data);
-      setIsloading(false);
-    } catch (err) {
-      setIsloading(false);
-      toast({
-        title: "Unable to load results",
-        description: err.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
+    if (!query) return;
+    searchUser({ apiUrl: `/api/user?search=${query}` });
   });
 
   const handleModalClose = () => {
@@ -80,41 +69,14 @@ const GroupModal = ({ children }) => {
       });
       return;
     }
-    const headerConfig = {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
+    const users = selectedUsers.map((user) => user._id);
+    const payload = {
+      name: groupName,
+      users,
+      groupChatPicture:
+        "https://img.freepik.com/free-vector/happy-young-people_24908-56802.jpg?w=826&t=st=1707985171~exp=1707985771~hmac=edb0aae5340f81d545328357fe278b334592b91d02a9f854f8fd74029a099665",
     };
-    try {
-      setIsCreateGroupLoading(true);
-      const users = selectedUsers.map((user) => user._id);
-      const payload = {
-        name: groupName,
-        users,
-        groupChatPicture:
-          "https://img.freepik.com/free-vector/happy-young-people_24908-56802.jpg?w=826&t=st=1707985171~exp=1707985771~hmac=edb0aae5340f81d545328357fe278b334592b91d02a9f854f8fd74029a099665",
-      };
-      const { data } = await axios.post(
-        "api/chat/createGroup",
-        payload,
-        headerConfig
-      );
-      setChats((chats) => [data, ...chats]);
-      setSelectedChat(data);
-      setIsCreateGroupLoading(false);
-      handleModalClose();
-      onClose();
-    } catch (err) {
-      console.log(err);
-      setIsCreateGroupLoading(false);
-      toast({
-        title: "Unable to create group",
-        description: err.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
+    createGroup({ headerPayload: payload });
   };
 
   const handleSelectUser = (newUser) => {
@@ -137,6 +99,42 @@ const GroupModal = ({ children }) => {
       users.filter((user) => user._id !== userToRemove._id)
     );
   };
+
+  useEffect(() => {
+    if (createGroupData) {
+      setChats((chats) => [createGroupData, ...chats]);
+      setSearchResults(null);
+      setSelectedChat(createGroupData);
+      handleModalClose();
+      onClose();
+    }
+    if (createGroupError) {
+      toast({
+        title: "Unable to create group",
+        description: createGroupError.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createGroupData, createGroupError]);
+
+  useEffect(() => {
+    if (searchUserData) {
+      setSearchResults(searchUserData);
+    }
+    if (searchUserError) {
+      toast({
+        title: "Unable to load results",
+        description: searchUserError.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchUserData, searchUserError]);
 
   return (
     <>
@@ -174,7 +172,7 @@ const GroupModal = ({ children }) => {
                   <GroupUserListItem
                     user={user}
                     key={user._id}
-                    onClick={handleRemoveUser}
+                    handleClick={handleRemoveUser}
                   />
                 );
               })}
