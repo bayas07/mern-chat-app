@@ -69,7 +69,7 @@ const GroupUpdateModal = ({ children }) => {
   const handleNameChange = (event) => {
     setChatName(event.target.value);
   };
-
+  const createdDate = new Date(selectedChat?.createdAt);
   const handleRemoveUser = async (user) => {
     const remove = window.confirm(
       `Would you like to remove ${user.name} from this group?`
@@ -106,7 +106,7 @@ const GroupUpdateModal = ({ children }) => {
 
   const handleModalClose = () => {
     setChatName("");
-    setSearchResults([]);
+    setSearchResults(null);
     onClose();
   };
 
@@ -181,7 +181,13 @@ const GroupUpdateModal = ({ children }) => {
       <Modal isOpen={isOpen} onClose={handleModalClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{selectedChat?.chatName}</ModalHeader>
+          <ModalHeader>
+            <Text fontSize="x-large">{selectedChat?.chatName}</Text>
+            <Text fontSize="small" color="grey">
+              Created by {selectedChat?.groupAdmin?.name} on{" "}
+              {createdDate?.toLocaleDateString("en-GB")}
+            </Text>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Box display="flex" flexWrap="wrap" gap={2} marginBottom={3}>

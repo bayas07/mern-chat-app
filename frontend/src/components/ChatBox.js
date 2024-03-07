@@ -141,7 +141,10 @@ const ChatBox = () => {
   }, []);
 
   useEffect(() => {
-    selectedChat && fetchAllMessages();
+    if (selectedChat) {
+      setAllMessages([]);
+      fetchAllMessages();
+    }
     compareChat = selectedChat;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChat]);

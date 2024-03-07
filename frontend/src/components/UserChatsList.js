@@ -111,7 +111,12 @@ const UserChatsList = () => {
                     chat.isGroupChat ? chat.groupChatPicture : sender.picture
                   }
                 />
-                <Box width="100%" overflow="hidden">
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  overflow="hidden"
+                  flex={1}
+                >
                   <Text fontFamily="poppins" fontSize="sm">
                     {!chat.isGroupChat ? sender.name : chat.chatName}
                   </Text>
