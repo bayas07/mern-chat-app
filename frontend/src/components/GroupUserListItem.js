@@ -2,14 +2,21 @@ import { CloseIcon } from "@chakra-ui/icons";
 import { Box, Text } from "@chakra-ui/react";
 import React from "react";
 
-const GroupUserListItem = ({ user, handleClick, hideCloseIcon = false }) => {
+const GroupUserListItem = ({
+  ariaLabel,
+  user,
+  handleClick,
+  hideCloseIcon = false,
+  elementAs = "div",
+}) => {
   return (
     <Box
-      cursor="pointer"
+      aria-label={elementAs === "button" && ariaLabel}
       onClick={() => handleClick(user)}
       backgroundColor="slateblue"
       borderRadius={5}
       padding="2px 5px"
+      as={elementAs}
     >
       <Text fontSize="small" color="#ffffff">
         {user.name}

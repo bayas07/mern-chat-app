@@ -25,6 +25,7 @@ const GroupUpdateModal = ({ children }) => {
   const [chatName, setChatName] = useState("");
   const [searchResults, setSearchResults] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isUserLeftGroup, setIsUserLeftGroup] = useState(false);
   const { selectedChat, user, setFetchChats, setSelectedChat } = useChatState();
 
   const {
@@ -70,16 +71,39 @@ const GroupUpdateModal = ({ children }) => {
     setChatName(event.target.value);
   };
   const createdDate = new Date(selectedChat?.createdAt);
-  const handleRemoveUser = async (user) => {
-    const remove = window.confirm(
-      `Would you like to remove ${user.name} from this group?`
-    );
-    if (!remove) return;
+  const handleRemoveUser = (user) => {
+    if (selectedChat?.users.length < 3) {
+      const remove = window.confirm(
+        `Atleast 2 members should be in a group. If you remove this user this group will be deleted.`
+      );
+      if (!remove) return;
+      setIsUserLeftGroup(true);
+    } else {
+      const remove = window.confirm(
+        `Would you like to remove ${user.name} from this group?`
+      );
+      if (!remove) return;
+    }
     removeUser({
       headerPayload: { userId: user._id, chatGroupId: selectedChat._id },
     });
   };
-  const handleAddUser = async (newUser) => {
+  const handleLeaveGroup = () => {
+    if (selectedChat?.users.length < 3) {
+      const remove = window.confirm(
+        `Atleast 2 members should be in a group. If you remove this user this group will be deleted.`
+      );
+      if (!remove) return;
+    } else {
+      const remove = window.confirm(`Would you like to leave from this group?`);
+      if (!remove) return;
+    }
+    setIsUserLeftGroup(true);
+    removeUser({
+      headerPayload: { userId: user.id, chatGroupId: selectedChat._id },
+    });
+  };
+  const handleAddUser = (newUser) => {
     if (selectedChat.users.find((user) => user._id === newUser._id)) {
       toast({
         title: "User Exist",
@@ -144,7 +168,14 @@ const GroupUpdateModal = ({ children }) => {
 
   useEffect(() => {
     if (removeUserData) {
-      setSelectedChat(removeUserData);
+      console.log({ removeUserData, isUserLeftGroup }, "** Obj");
+      if (isUserLeftGroup) {
+        setSelectedChat(null);
+        setFetchChats(true);
+        handleModalClose();
+      } else {
+        setSelectedChat(removeUserData);
+      }
     }
     if (removeUserError) {
       toast({
@@ -156,7 +187,7 @@ const GroupUpdateModal = ({ children }) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [removeUserData, removeUserError]);
+  }, [removeUserData, removeUserError, isUserLeftGroup]);
 
   useEffect(() => {
     if (renameGroupData) {
@@ -184,22 +215,28 @@ const GroupUpdateModal = ({ children }) => {
           <ModalHeader>
             <Text fontSize="x-large">{selectedChat?.chatName}</Text>
             <Text fontSize="small" color="grey">
-              Created by {selectedChat?.groupAdmin?.name} on{" "}
-              {createdDate?.toLocaleDateString("en-GB")}
+              Created on {createdDate?.toLocaleDateString("en-GB")}
             </Text>
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Box display="flex" flexWrap="wrap" gap={2} marginBottom={3}>
-              {selectedChat.users.map((user) => {
-                if (user._id !== selectedChat.groupAdmin._id) {
+              {selectedChat.users.map((chatUser) => {
+                if (
+                  !(
+                    chatUser._id === selectedChat.groupAdmin._id &&
+                    chatUser._id === user.id
+                  )
+                ) {
                   return (
                     <GroupUserListItem
-                      user={user}
-                      key={user._id}
+                      ariaLabel={`Click to remove ${chatUser?.name} from the group`}
+                      user={chatUser}
+                      key={chatUser._id}
+                      elementAs={userIsGroupAdmin ? "button" : "div"}
                       hideCloseIcon={!userIsGroupAdmin}
                       handleClick={() => {
-                        handleRemoveUser(user);
+                        userIsGroupAdmin && handleRemoveUser(chatUser);
                       }}
                     />
                   );
@@ -262,7 +299,7 @@ const GroupUpdateModal = ({ children }) => {
               color="#ffffff"
               backgroundColor="tomato"
               mr={3}
-              onClick={handleModalClose}
+              onClick={handleLeaveGroup}
               variant="ghost"
               _hover={{ color: "#000000", backgroundColor: "#EDF2F7" }}
             >
