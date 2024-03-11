@@ -1,7 +1,7 @@
-import { Avatar, Box } from "@chakra-ui/react";
+import { Avatar, Box, Text } from "@chakra-ui/react";
 import React from "react";
 import ScrollableFeed from "react-scrollable-feed";
-import { verifySameUser, hasPrevMsgFromSender } from "../utils/chatUtils";
+import { verifySameUser, isNewMsgFromSender } from "../utils/chatUtils";
 import TypingIndicator from "./TypingIndicator";
 
 const ScrollableChatFeed = ({ messages, user, isTyping }) => {
@@ -21,27 +21,39 @@ const ScrollableChatFeed = ({ messages, user, isTyping }) => {
             }
             key={message._id}
           >
-            {hasPrevMsgFromSender(message, index, arr, user) && (
+            {isNewMsgFromSender(message, index, arr, user) && (
               <Avatar
                 name={message.sender.name}
                 size="sm"
                 src={message.sender.picture}
               />
             )}
-            <span
-              style={{
-                backgroundColor:
-                  message.sender._id === user.id ? "#BEECF8" : "#B9F5D0",
-                borderRadius:
-                  message.sender._id === user.id
-                    ? "15px 0px 15px 15px"
-                    : "0px 15px 15px 15px",
-                fontSize: "14px",
-                padding: "5px 15px",
-              }}
-            >
-              {message?.content}
-            </span>
+            <>
+              <Box
+                style={{
+                  backgroundColor:
+                    message.sender._id === user.id ? "#BEECF8" : "#B9F5D0",
+                  borderRadius:
+                    message.sender._id === user.id
+                      ? "15px 0px 15px 15px"
+                      : "0px 15px 15px 15px",
+                  padding: "5px 15px",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {isNewMsgFromSender(message, index, arr, user) &&
+                message.chat.isGroupChat &&
+                message.sender._id !== user.id ? (
+                  <Text as="span" fontSize="10px" color="darkred">
+                    {message.sender.name}
+                  </Text>
+                ) : null}
+                <Text as="span" fontSize="14px">
+                  {message?.content}
+                </Text>
+              </Box>
+            </>
           </Box>
         );
       })}

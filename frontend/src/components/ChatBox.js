@@ -1,7 +1,7 @@
 import {
   Avatar,
   Box,
-  FormControl,
+  Button,
   IconButton,
   Input,
   Spinner,
@@ -70,21 +70,25 @@ const ChatBox = () => {
     }, 2000);
   };
 
-  const handleSendMessage = async (event) => {
+  const handleSendMessage = () => {
+    if (!message.trim()) {
+      toast({
+        title: "Error occured!",
+        description: "Please enter something to send",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+    setMessage("");
+    sendMessage();
+  };
+
+  const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       socket.emit("stopped-typing", selectedChat._id);
-      if (!message.trim()) {
-        toast({
-          title: "Error occured!",
-          description: "Please enter something to send",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-        return;
-      }
-      setMessage("");
-      sendMessage();
+      handleSendMessage();
     }
   };
 
@@ -130,6 +134,7 @@ const ChatBox = () => {
     socket.on("typing", () => setIsTyping(true));
     socket.on("stopped-typing", () => setIsTyping(false));
     socket.on("receive-message", (newMessage) => {
+      console.log(newMessage, compareChat, "** newMessage");
       setFetchChats(true);
       if (!compareChat || compareChat?._id !== newMessage?.chat?._id) {
         setNotifications((prevData) => [newMessage, ...prevData]);
@@ -225,15 +230,24 @@ const ChatBox = () => {
               />
             )}
           </Box>
-          <FormControl>
+          <Box display="flex" columnGap="8px">
             <Input
               type="text"
               onChange={handleMessage}
               placeholder="Type something..."
-              onKeyDown={handleSendMessage}
+              onKeyDown={handleKeyDown}
               value={message}
             />
-          </FormControl>
+            <Button
+              variant="solid"
+              size="sm"
+              onClick={handleSendMessage}
+              padding={5}
+              colorScheme="blue"
+            >
+              Send
+            </Button>
+          </Box>
         </>
       )}
     </Box>
