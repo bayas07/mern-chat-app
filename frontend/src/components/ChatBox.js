@@ -134,13 +134,12 @@ const ChatBox = () => {
     socket.on("typing", () => setIsTyping(true));
     socket.on("stopped-typing", () => setIsTyping(false));
     socket.on("receive-message", (newMessage) => {
-      console.log(newMessage, compareChat, "** newMessage");
       setFetchChats(true);
       if (!compareChat || compareChat?._id !== newMessage?.chat?._id) {
         setNotifications((prevData) => [newMessage, ...prevData]);
+      } else {
+        setAllMessages((prevMessages) => [...prevMessages, newMessage]);
       }
-      compareChat &&
-        setAllMessages((prevMessages) => [newMessage, ...prevMessages]);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

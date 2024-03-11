@@ -16,6 +16,8 @@ const UserChatsList = () => {
     setSelectedChat,
     fetchChats,
     setFetchChats,
+    notifications,
+    setNotifications,
   } = useChatState();
   const toast = useToast();
 
@@ -65,6 +67,17 @@ const UserChatsList = () => {
       }
     }
   };
+
+  const handleChatSelect = (chat) => {
+    if (notifications) {
+      const filteredNotifications = notifications.filter(
+        (notification) => notification?.chat?._id !== chat?._id
+      );
+      setNotifications(filteredNotifications);
+    }
+    setSelectedChat(chat);
+  };
+
   return (
     <Box
       width={{ base: "100%", md: "33%" }}
@@ -98,7 +111,7 @@ const UserChatsList = () => {
                 }
                 cursor="pointer"
                 borderRadius={5}
-                onClick={() => setSelectedChat(chat)}
+                onClick={() => handleChatSelect(chat)}
                 display="flex"
                 alignItems="center"
                 gap="0 8px"
