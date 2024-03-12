@@ -21,7 +21,7 @@ import { useAxios } from "../customHooks/useAxios";
 /** local */
 // const END_POINT = "http://localhost:3000";
 /** prodution */
-const END_POINT = "http://localhost:4000";
+const END_POINT = window.location.origin;
 let socket;
 let timeout;
 let compareChat;
