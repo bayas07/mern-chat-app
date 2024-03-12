@@ -18,7 +18,10 @@ import ScrollableChatFeed from "./ScrollableChatFeed";
 import io from "socket.io-client";
 import { useAxios } from "../customHooks/useAxios";
 
-const END_POINT = "http://localhost:3000";
+/** local */
+// const END_POINT = "http://localhost:3000";
+/** prodution */
+const END_POINT = "http://localhost:4000";
 let socket;
 let timeout;
 let compareChat;

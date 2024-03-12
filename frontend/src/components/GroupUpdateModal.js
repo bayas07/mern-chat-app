@@ -168,7 +168,6 @@ const GroupUpdateModal = ({ children }) => {
 
   useEffect(() => {
     if (removeUserData) {
-      console.log({ removeUserData, isUserLeftGroup }, "** Obj");
       if (isUserLeftGroup) {
         setSelectedChat(null);
         setFetchChats(true);

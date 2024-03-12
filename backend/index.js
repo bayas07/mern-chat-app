@@ -6,6 +6,7 @@ const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
+const path = require("path");
 
 const app = express();
 app.use(express.json());
@@ -13,13 +14,22 @@ app.use(express.json());
 dotEnv.config();
 connectDb();
 
-app.get("/", (req, res) => {
-  res.send("Hello");
-});
-
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
+
+/** Deployment */
+const __dirName = path.resolve();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirName, "frontend/build")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirName, "frontend", "build", "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("Api is running...");
+  });
+}
 
 // Error Handling
 app.use(notFound);
