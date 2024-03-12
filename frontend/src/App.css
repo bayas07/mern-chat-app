@@ -14,3 +14,89 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.message-feed {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  row-gap: 5px;
+}
+
+.ti-container {
+  display: flex;
+  align-items: center;
+  gap: 0 5px;
+  margin: 12px 0 0 6px;
+}
+
+.ti-dot {
+  background-color: #90949c;
+  animation: mercuryTypingAnimation 1.5s infinite ease-in-out;
+  border-radius: 4px;
+  height: 8px;
+  width: 8px;
+}
+
+.pop-up-animation {
+  animation: popup 0.4s;
+}
+
+@keyframes mercuryTypingAnimation {
+  0% {
+    transform: translateY(0px)
+  }
+
+  28% {
+    transform: translateY(-7px)
+  }
+
+  44% {
+    transform: translateY(0px)
+  }
+}
+
+@keyframes popup {
+  0% {
+    transform: scale(1);
+  }
+
+  20% {
+    transform: scale(1.1);
+  }
+
+  40% {
+    transform: scale(1.2);
+  }
+
+  60% {
+    transform: scale(1.25);
+  }
+
+  80% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.ti-dot:nth-child(1) {
+  animation-delay: 200ms;
+}
+
+.ti-dot:nth-child(2) {
+  animation-delay: 300ms;
+}
+
+.ti-dot:nth-child(3) {
+  animation-delay: 400ms;
+}
+
+.ti-dot:nth-child(4) {
+  animation-delay: 500ms;
+}
+
+.ti-dot:nth-child(5) {
+  animation-delay: 500ms;
+}

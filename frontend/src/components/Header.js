@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -15,9 +15,35 @@ import {
 import { BellIcon, SearchIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import ProfileModal from "../components/ProfileModal";
 import { useChatState } from "../context/chatContext";
+import { getSender } from "../utils/chatUtils";
+import { removeDuplicateNotifications } from "../utils";
 
 const Header = ({ onDrawerOpen, onLogout }) => {
-  const { user } = useChatState();
+  const { user, notifications, setSelectedChat, setNotifications } =
+    useChatState();
+  const [addAniClass, setAddAniClass] = useState(false);
+  const notRef = useRef();
+  const handleNotification = (msg) => {
+    setSelectedChat(msg.chat);
+    setNotifications((prevNot) =>
+      prevNot.filter((notification) => notification.chat._id !== msg.chat._id)
+    );
+  };
+  const filteredNotifications = useMemo(
+    () => removeDuplicateNotifications(notifications),
+    [notifications]
+  );
+  useEffect(() => {
+    let timeRef;
+    if (notifications.length > 0) {
+      setAddAniClass(true);
+      timeRef && clearTimeout(timeRef);
+      timeRef = setTimeout(() => {
+        setAddAniClass(false);
+      }, 500);
+    }
+  }, [notifications]);
+
   return (
     <Box
       as="header"
@@ -54,7 +80,65 @@ const Header = ({ onDrawerOpen, onLogout }) => {
             </Tooltip>
           </Box>
           <Box>
-            <BellIcon boxSize={6} marginRight={3} cursor="pointer" />
+            <Menu>
+              <MenuButton
+                as={Button}
+                aria-label="Notifications"
+                variant="ghost"
+                position="relative"
+                ref={notRef}
+                className={addAniClass ? "pop-up-animation" : ""}
+              >
+                <BellIcon boxSize={6} />
+                <Text
+                  as="span"
+                  color="#FFFFFF"
+                  fontSize="x-small"
+                  position="absolute"
+                  backgroundColor="red"
+                  padding="1px 6px"
+                  borderRadius={20}
+                  right="12px"
+                  top="4px"
+                >
+                  {notifications.length}
+                </Text>
+              </MenuButton>
+              <MenuList padding={2}>
+                {!notifications.length ? (
+                  <Text fontSize="sm">No new messsages received</Text>
+                ) : (
+                  filteredNotifications.map((msg) => {
+                    return (
+                      <MenuItem
+                        onClick={() => handleNotification(msg)}
+                        justifyContent="space-between"
+                        gap="0 5px"
+                      >
+                        <Text as="span">
+                          {msg.chat.isGroupChat
+                            ? `New Message in ${msg.chat.chatName}`
+                            : `New Message from ${getSender(
+                                msg.chat.users,
+                                user
+                              )}`}
+                        </Text>
+                        <Text
+                          as="span"
+                          color="#FFFFFF"
+                          fontSize="x-small"
+                          backgroundColor="red"
+                          padding="1px 6px"
+                          borderRadius="50%"
+                        >
+                          {msg.count}
+                        </Text>
+                      </MenuItem>
+                    );
+                  })
+                )}
+              </MenuList>
+            </Menu>
             <Menu>
               <MenuButton
                 as={Button}

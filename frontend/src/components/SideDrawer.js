@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -11,25 +11,43 @@ import {
   Input,
   Spinner,
   useToast,
+  Text,
 } from "@chakra-ui/react";
 import ChatSkeleton from "../components/ChatSkeleton";
-import ChatUserListItem from "../components/ChatUserListItem";
-import axios from "axios";
+import UserListItem from "./UserListItem";
 import { useChatState } from "../context/chatContext";
+import { useAxios } from "../customHooks/useAxios";
 
 const SideDrawer = ({ isOpen, onClose }) => {
   const toast = useToast();
-  const { setSelectedChat, user, chats, setChats } = useChatState();
+  const { setSelectedChat, chats, setChats } = useChatState();
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsloading] = useState(false);
-  const [isChatLoading, setIsChatloading] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
+  const {
+    data: searchData,
+    error: searchError,
+    fetchData: searchUser,
+    loading,
+  } = useAxios({
+    url: `/api/user?search=${search}`,
+  });
+  const {
+    data: chatData,
+    error: chatError,
+    fetchData: loadChats,
+    loading: isChatLoading,
+  } = useAxios({ url: "api/chat", method: "post" });
 
   const handleSearchInputChange = (event) => {
     setSearch(event.target.value.trim());
   };
+  const handleKeyDown = (event) => {
+    if (event.code === "Enter") {
+      handleSearch();
+    }
+  };
   const handleSearch = async () => {
-    setSearchResults([]);
+    setSearchResults(null);
     if (!search) {
       toast({
         description: "Please fill the search field",
@@ -40,62 +58,50 @@ const SideDrawer = ({ isOpen, onClose }) => {
       });
       return;
     }
-    const headerConfig = {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    };
-    try {
-      setIsloading(true);
-      const response = await axios.get(
-        `/api/user?search=${search}`,
-        headerConfig
-      );
-      setSearchResults(response.data);
-      setIsloading(false);
-    } catch (err) {
-      setIsloading(false);
+    searchUser();
+  };
+  useEffect(() => {
+    if (searchData) {
+      setSearchResults(searchData);
+    }
+    if (searchError) {
       toast({
         title: "Unable to load results",
-        description: err.message,
+        description: searchError.message,
         status: "error",
         duration: 5000,
         isClosable: true,
       });
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchData, searchError]);
   const accessChat = async (userToChat) => {
-    const headerConfig = {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
+    loadChats({
+      headerPayload: {
+        userId: userToChat._id,
       },
-    };
-    try {
-      setIsChatloading(true);
-      const { data } = await axios.post(
-        "api/chat",
-        {
-          userId: userToChat._id,
-        },
-        headerConfig
-      );
-      if (!chats.find((chat) => chat._id === data?._id)) {
-        setChats([...chats, data]);
+    });
+  };
+  useEffect(() => {
+    if (chatData) {
+      if (!chats.find((chat) => chat._id === chatData?._id)) {
+        setChats([...chats, chatData]);
       }
-      setSelectedChat(data);
-      setIsChatloading(false);
-    } catch (err) {
-      setIsChatloading(false);
+      onClose();
+      setSelectedChat(chatData);
+    }
+    if (chatError) {
       toast({
         title: "Unable to fetch the chats",
-        description: err.message,
+        description: chatError.message,
         status: "error",
         duration: 5000,
         isClosable: true,
         position: "bottom-left",
       });
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatData, chatError]);
   return (
     <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
       <DrawerOverlay />
@@ -108,16 +114,20 @@ const SideDrawer = ({ isOpen, onClose }) => {
               placeholder="Type name or email"
               onChange={handleSearchInputChange}
               value={search}
+              onKeyDown={handleKeyDown}
             />
             <Button onClick={handleSearch}>Go</Button>
           </Box>
-          {isLoading ? (
+          {loading ? (
             <ChatSkeleton />
           ) : (
             <>
-              {searchResults.map((user) => {
+              {searchResults?.length === 0 && (
+                <Text fontSize="md">No Users Found</Text>
+              )}
+              {searchResults?.map((user) => {
                 return (
-                  <ChatUserListItem
+                  <UserListItem
                     key={user.id}
                     userData={user}
                     onItemClick={() => accessChat(user)}

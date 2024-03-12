@@ -68,7 +68,7 @@ const fetchChat = asyncHandler(async (req, res) => {
 });
 
 const createGroupChat = asyncHandler(async (req, res) => {
-  const { name, users } = req.body;
+  const { name, users, groupChatPicture } = req.body;
   if (!name || !users) {
     res.status(400);
     throw new Error("Please fill all the required fields");
@@ -82,6 +82,7 @@ const createGroupChat = asyncHandler(async (req, res) => {
     const groupChat = await Chat.create({
       chatName: name,
       isGroupChat: true,
+      groupChatPicture,
       users: users,
       groupAdmin: req.user._id,
     });
@@ -132,18 +133,42 @@ const addToGroup = asyncHandler(async (req, res) => {
 
 const removeUser = asyncHandler(async (req, res) => {
   const { chatGroupId, userId } = req.body;
-  const updatedChatGroup = await Chat.findByIdAndUpdate(
-    chatGroupId,
-    { $pull: { users: userId } },
-    { new: true }
-  )
+  const AllGroupChats = await Chat.findOne({ _id: chatGroupId })
     .populate("users", "-password")
     .populate("groupAdmin", "-password");
-  if (updatedChatGroup) {
-    res.status(200).send(updatedChatGroup);
-  } else {
+
+  if (!AllGroupChats) {
     res.status(400);
     throw new Error("Chat not found");
+  }
+
+  if (AllGroupChats.users.length < 3) {
+    const chatGroup = await Chat.deleteOne({ _id: chatGroupId });
+    if (chatGroup) {
+      res.status(200).send({ data: "Group has been deleted successfully" });
+    } else {
+      res.status(400);
+      throw new Error("Something went wrong");
+    }
+    return;
+  }
+
+  const isAdmin = AllGroupChats.groupAdmin._id.toString() === userId;
+  const users = AllGroupChats.users.filter(
+    (user) => user._id.toString() !== userId
+  );
+  const updateObj = isAdmin ? { users, groupAdmin: users[0] } : { users };
+  const updatedGroup = await Chat.findByIdAndUpdate(chatGroupId, updateObj, {
+    new: true,
+  })
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
+
+  if (updatedGroup) {
+    res.status(200).send(updatedGroup);
+  } else {
+    res.status(400);
+    throw new Error("Something went wrong");
   }
 });
 
